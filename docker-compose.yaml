@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Serviço do Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: meu-app-backend
+    restart: unless-stopped
+    ports:
+      # Mapeia a porta 3001 do host para a porta 3001 do contêiner
+      - "3001:3001"
+    volumes:
+      # Monta os diretórios de dados e logs para persistência fora do contêiner
+      - ./backend/data:/usr/src/app/data
+      - ./backend/logs:/usr/src/app/logs
+    env_file:
+      - .env
+    networks:
+      - minha-rede
+
+  # Serviço do Frontend
+  frontend:
+    build:
+      context: ./project
+      dockerfile: Dockerfile
+    container_name: meu-app-frontend
+    restart: unless-stopped
+    ports:
+      # Mapeia a porta 5173 do host para a porta 80 do contêiner (Nginx)
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - minha-rede
+
+# Define a rede que permite a comunicação entre os contêineres
+networks:
+  minha-rede:
+    driver: bridge

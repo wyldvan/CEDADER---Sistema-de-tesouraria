@@ -1,0 +1,421 @@
+import React, { useState, useEffect } from 'react';
+import { useTransactions } from '../hooks/useTransactions';
+import { useDocumentRanges } from '../hooks/useDocumentRanges';
+import { useAuth } from '../contexts/AuthContext';
+import { Transaction, CATEGORIES, SECTORS, MONTHS } from '../types';
+import { Edit2, X, MapPin, FileText, Calendar, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+
+interface TransactionEditFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  transaction: Transaction;
+}
+
+export function TransactionEditForm({ isOpen, onClose, transaction }: TransactionEditFormProps) {
+  const [category, setCategory] = useState(transaction.category);
+  const [amount, setAmount] = useState(transaction.amount.toString());
+  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'cash' | 'transfer'>(transaction.paymentMethod);
+  const [description, setDescription] = useState(transaction.description);
+  const [sector, setSector] = useState('');
+  const [field, setField] = useState(transaction.field || '');
+  const [month, setMonth] = useState(transaction.month || '');
+  const [startDate, setStartDate] = useState(transaction.startDate || '');
+  const [documentNumber, setDocumentNumber] = useState(transaction.documentNumber || '');
+  const [documentError, setDocumentError] = useState('');
+  const [documentValidation, setDocumentValidation] = useState<{ isValid: boolean, message: string }>({ isValid: true, message: '' });
+  
+  const { updateTransaction, transactions } = useTransactions();
+  const { isDocumentNumberInRange } = useDocumentRanges();
+  const { user } = useAuth();
+
+  // Initialize sector based on field
+  useEffect(() => {
+    if (field) {
+      const foundSector = Object.keys(SECTORS).find(s => 
+        SECTORS[s as keyof typeof SECTORS].includes(field)
+      );
+      if (foundSector) {
+        setSector(foundSector);
+      }
+    }
+  }, [field]);
+
+  const handleSectorChange = (selectedSector: string) => {
+    setSector(selectedSector);
+    setField(''); // Reset field when sector changes
+  };
+
+  const getFieldsForSector = (sectorName: string) => {
+    return SECTORS[sectorName as keyof typeof SECTORS] || [];
+  };
+
+  // Verificar se o número do documento já existe (excluindo a transação atual)
+  const checkDocumentNumber = (docNumber: string) => {
+    if (!docNumber.trim()) {
+      setDocumentError('');
+      setDocumentValidation({ isValid: true, message: '' });
+      return true;
+    }
+
+    const normalizedDocNumber = docNumber.trim().toLowerCase();
+    
+    // 1. Verificar duplicatas (excluindo a transação atual)
+    const existingTransaction = transactions.find(t => 
+      t.id !== transaction.id && // Excluir a transação atual
+      t.documentNumber && 
+      t.documentNumber.toLowerCase() === normalizedDocNumber
+    );
+
+    // Verificar em prebendas também
+    const prebendas = JSON.parse(localStorage.getItem('cedader_prebendas') || '[]');
+    const existingPrebenda = prebendas.find((p: any) => 
+      p.documentNumber && p.documentNumber.toLowerCase() === normalizedDocNumber
+    );
+
+    if (existingTransaction || existingPrebenda) {
+      setDocumentError(`Número do documento "${docNumber}" já existe! Use um número diferente.`);
+      setDocumentValidation({ isValid: false, message: '' });
+      return false;
+    }
+
+    // 2. Verificar se está na faixa permitida
+    const rangeValidation = isDocumentNumberInRange(docNumber);
+    setDocumentValidation(rangeValidation);
+
+    if (!rangeValidation.isValid) {
+      setDocumentError('');
+      return false;
+    }
+
+    // Tudo OK
+    setDocumentError('');
+    return true;
+  };
+
+  const handleDocumentNumberChange = (value: string) => {
+    setDocumentNumber(value);
+    checkDocumentNumber(value);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!category || !amount || !description) return;
+
+    // Verificação final do número do documento
+    if (documentNumber && !checkDocumentNumber(documentNumber)) {
+      return; // Não submete se houver documento duplicado ou fora da faixa
+    }
+
+    updateTransaction(transaction.id, {
+      category,
+      amount: parseFloat(amount),
+      paymentMethod,
+      description,
+      field: field || undefined,
+      month: month || undefined,
+      startDate: startDate || undefined,
+      documentNumber: documentNumber.trim() || undefined,
+    });
+
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  const isDocumentValid = !documentNumber || (!documentError && documentValidation.isValid && documentNumber.trim() !== '');
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
+              <Edit2 className="w-6 h-6 text-blue-600" />
+              <span>Editar {transaction.type === 'entry' ? 'Entrada' : 'Saída'}</span>
+            </h3>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Nº do Documento - COM VALIDAÇÃO COMPLETA */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nº do Documento
+              </label>
+              <div className="relative">
+                <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  value={documentNumber}
+                  onChange={(e) => handleDocumentNumberChange(e.target.value)}
+                  className={`w-full pl-10 pr-10 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                    documentError || !documentValidation.isValid
+                      ? 'border-red-300 focus:border-red-500 bg-red-50' 
+                      : documentNumber && documentValidation.isValid && !documentError
+                        ? 'border-green-300 focus:border-green-500 bg-green-50'
+                        : 'border-gray-300 focus:border-blue-500'
+                  }`}
+                  placeholder="Ex: 001, NF-123, REC-456..."
+                />
+                {/* Ícone de Status */}
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  {documentNumber && (
+                    (documentError || !documentValidation.isValid) ? (
+                      <AlertTriangle className="w-4 h-4 text-red-500" />
+                    ) : (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    )
+                  )}
+                </div>
+              </div>
+              
+              {/* Mensagem de Erro - Duplicata */}
+              {documentError && (
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                    <span className="text-sm text-red-700 font-medium">{documentError}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Mensagem de Erro - Faixa */}
+              {!documentError && !documentValidation.isValid && documentNumber && (
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                    <span className="text-sm text-red-700 font-medium">{documentValidation.message}</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Mensagem de Sucesso */}
+              {documentNumber && !documentError && documentValidation.isValid && (
+                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="text-sm text-green-700 font-medium">
+                      ✓ {documentValidation.message || 'Número do documento válido'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Mensagem Informativa */}
+              {!documentNumber && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Info className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm text-blue-700">
+                      Configure faixas de documentos em Configurações → Documentos
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Categoria */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Categoria *
+              </label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              >
+                <option value="">Selecione uma categoria</option>
+                {CATEGORIES[transaction.type].map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Valor *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="0,00"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Método de Pagamento *
+              </label>
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value as 'pix' | 'cash' | 'transfer')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              >
+                <option value="pix">PIX</option>
+                <option value="cash">Dinheiro</option>
+                <option value="transfer">Transferência</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Setor
+              </label>
+              <select
+                value={sector}
+                onChange={(e) => handleSectorChange(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Selecione um setor</option>
+                {Object.keys(SECTORS).map((sectorName) => (
+                  <option key={sectorName} value={sectorName}>{sectorName}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Campo
+              </label>
+              <select
+                value={field}
+                onChange={(e) => setField(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                disabled={!sector}
+              >
+                <option value="">
+                  {sector ? 'Selecione um campo' : 'Primeiro selecione um setor'}
+                </option>
+                {sector && getFieldsForSector(sector).map((fieldName) => (
+                  <option key={fieldName} value={fieldName}>{fieldName}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Mês */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mês
+              </label>
+              <select
+                value={month}
+                onChange={(e) => setMonth(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Selecione um mês</option>
+                {MONTHS.map((monthName) => (
+                  <option key={monthName} value={monthName}>{monthName}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Data de Início */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Data de Início
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Descrição *
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                rows={3}
+                placeholder="Descreva a transação..."
+                required
+              />
+            </div>
+
+            {/* Sector Information Display */}
+            {sector && (
+              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center space-x-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>{sector}</span>
+                </h4>
+                <div className="text-xs text-blue-700">
+                  <span className="font-medium">Campos disponíveis:</span>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {getFieldsForSector(sector).map((fieldName) => (
+                      <span
+                        key={fieldName}
+                        className={`px-2 py-1 rounded text-xs ${
+                          field === fieldName
+                            ? 'bg-blue-200 text-blue-900 font-medium'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        {fieldName}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Informação sobre Mês */}
+            {month && (
+              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                <h4 className="text-sm font-medium text-green-800 mb-1 flex items-center space-x-1">
+                  <Calendar className="w-4 h-4" />
+                  <span>Mês Selecionado: {month}</span>
+                </h4>
+                <p className="text-xs text-green-700">
+                  ✅ Sistema aceita todos os meses de Janeiro a Dezembro
+                </p>
+              </div>
+            )}
+
+            <div className="flex space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={!isDocumentValid}
+                className={`flex-1 px-4 py-2 rounded-lg transition-all flex items-center justify-center space-x-2 font-medium ${
+                  isDocumentValid
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                <Edit2 className="w-4 h-4" />
+                <span>Salvar Alterações</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

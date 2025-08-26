@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: meu-app-backend
+    env_file:
+      - .env
+    volumes:
+      - ./backend/data:/usr/src/app/data
+      - ./backend/logs:/usr/src/app/logs
+    networks:
+      - minha-rede
+
+  frontend:
+    build:
+      context: ./project
+    container_name: meu-app-frontend
+    networks:
+      - minha-rede
+    depends_on:
+      - backend
+
+networks:
+  minha-rede:
+    driver: bridge

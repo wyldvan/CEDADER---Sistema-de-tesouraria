@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { User, Lock, LogIn, AlertTriangle } from 'lucide-react';
+import logo from '../assets/logoADbrasil1.png';
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
@@ -13,9 +14,10 @@ export function LoginForm() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
-      if (login(username, password)) {
+      const success = await login(username, password);
+      if (success) {
         setUsername('');
         setPassword('');
       } else {
@@ -32,11 +34,15 @@ export function LoginForm() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-2xl">C</span>
+          <div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center mx-auto mb-4 shadow">
+            <img
+              src={logo}
+              alt="Logo CEDADER"
+              className="object-contain w-20 h-20"
+            />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">CEDADER</h1>
-          <p className="text-emerald-600">Sistema de Tesouraria</p>
+          <p className="text-emerald-600">Convenção Estadual das Assembléia de Deus</p>
           <p className="text-sm text-gray-500 mt-2">Faça login para acessar o sistema</p>
         </div>
 
@@ -89,25 +95,24 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 font-medium ${
-              isLoading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700'
-            } text-white`}
+            className={`w-full py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 font-medium ${isLoading
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700'
+              } text-white`}
           >
             <LogIn className="w-5 h-5" />
             <span>{isLoading ? 'Entrando...' : 'Entrar'}</span>
           </button>
         </form>
 
-        <div className="mt-8 p-4 bg-emerald-50 rounded-lg text-sm text-emerald-800">
+        {/* <div className="mt-8 p-4 bg-emerald-50 rounded-lg text-sm text-emerald-800">
           <p className="font-medium mb-1">Credenciais do Administrador:</p>
           <p>Usuário: <span className="font-mono">CEDADER</span></p>
           <p>Senha: <span className="font-mono">123456789</span></p>
           <p className="text-xs text-emerald-600 mt-2">
             O administrador pode criar usuários e gerenciar permissões
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );

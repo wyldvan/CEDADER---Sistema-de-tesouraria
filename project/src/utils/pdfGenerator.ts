@@ -3,6 +3,7 @@ import html2canvas from 'html2canvas';
 import { Transaction, Registration } from '../types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { formatCurrency } from './formatters';
 
 export const generateTransactionsPDF = async (transactions: Transaction[], title: string) => {
   const pdf = new jsPDF();
@@ -41,7 +42,7 @@ export const generateTransactionsPDF = async (transactions: Transaction[], title
   pdf.setFont('helvetica', 'normal');
   
   // Table rows - ENHANCED WITH MONTH AND START DATE
-  transactions.forEach((transaction, index) => {
+  transactions.forEach((transaction) => {
     if (currentY > 270) {
       pdf.addPage();
       currentY = 20;
@@ -52,7 +53,7 @@ export const generateTransactionsPDF = async (transactions: Transaction[], title
       format(new Date(transaction.date), 'dd/MM/yyyy', { locale: ptBR }),
       transaction.type === 'entry' ? 'Entrada' : 'Saída',
       transaction.category,
-      `R$ ${transaction.amount.toFixed(2)}`,
+      formatCurrency(transaction.amount),
       transaction.paymentMethod.toUpperCase(),
       transaction.documentNumber || '-',
       transaction.field || 'N/A',
@@ -78,12 +79,12 @@ export const generateTransactionsPDF = async (transactions: Transaction[], title
   
   currentY += 10;
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`Total Entradas: R$ ${totalEntry.toFixed(2)}`, 10, currentY);
+  pdf.text(`Total Entradas: ${formatCurrency(totalEntry)}`, 10, currentY); // <-- CORREÇÃO
   currentY += 8;
-  pdf.text(`Total Saídas: R$ ${totalExit.toFixed(2)}`, 10, currentY);
+  pdf.text(`Total Saídas: ${formatCurrency(totalExit)}`, 10, currentY); // <-- CORREÇÃO
   currentY += 8;
   pdf.setTextColor(balance >= 0 ? 16 : 220, balance >= 0 ? 185 : 53, balance >= 0 ? 129 : 69);
-  pdf.text(`Saldo: R$ ${balance.toFixed(2)}`, 10, currentY);
+  pdf.text(`Saldo: ${formatCurrency(balance)}`, 10, currentY); // <-- CORREÇÃO
   
   // ENHANCED SUMMARY: Campo Statistics
   currentY += 15;
@@ -137,9 +138,9 @@ export const generateTransactionsPDF = async (transactions: Transaction[], title
     const fieldRowData = [
       field,
       stats.count.toString(),
-      `R$ ${stats.total.toFixed(2)}`,
-      `R$ ${stats.entries.toFixed(2)}`,
-      `R$ ${stats.exits.toFixed(2)}`
+      formatCurrency(stats.total),   // <-- CORREÇÃO
+      formatCurrency(stats.entries), // <-- CORREÇÃO
+      formatCurrency(stats.exits)    // <-- CORREÇÃO
     ];
     
     fieldRowData.forEach((data, colIndex) => {
@@ -201,7 +202,7 @@ export const generateRegistrationsPDF = async (registrations: Registration[], ti
       registration.field,
       registration.month,
       registration.category,
-      `R$ ${registration.amount.toFixed(2)}`,
+      formatCurrency(registration.amount), // <-- CORREÇÃO
       format(new Date(registration.date), 'dd/MM/yyyy', { locale: ptBR })
     ];
     
@@ -216,7 +217,7 @@ export const generateRegistrationsPDF = async (registrations: Registration[], ti
   const total = registrations.reduce((sum, r) => sum + r.amount, 0);
   currentY += 10;
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`Total: R$ ${total.toFixed(2)}`, 10, currentY);
+  pdf.text(`Total: ${formatCurrency(total)}`, 10, currentY); // <-- CORREÇÃO
   
   pdf.save(`${title.replace(/\s+/g, '_')}.pdf`);
 };
@@ -268,7 +269,7 @@ export const generatePrebendaPDF = async (prebendas: any[], title: string) => {
       format(new Date(prebenda.date), 'dd/MM/yyyy', { locale: ptBR }),
       prebenda.type === 'entry' ? 'Entrada' : 'Saída',
       prebenda.pastor,
-      `R$ ${prebenda.amount.toFixed(2)}`,
+      formatCurrency(prebenda.amount), // <-- CORREÇÃO
       prebenda.month,
       prebenda.field || 'N/A',
       prebenda.description
@@ -291,12 +292,12 @@ export const generatePrebendaPDF = async (prebendas: any[], title: string) => {
   
   currentY += 10;
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`Total Entradas: R$ ${totalEntry.toFixed(2)}`, 10, currentY);
+  pdf.text(`Total Entradas: ${formatCurrency(totalEntry)}`, 10, currentY); // <-- CORREÇÃO
   currentY += 8;
-  pdf.text(`Total Saídas: R$ ${totalExit.toFixed(2)}`, 10, currentY);
+  pdf.text(`Total Saídas: ${formatCurrency(totalExit)}`, 10, currentY); // <-- CORREÇÃO
   currentY += 8;
   pdf.setTextColor(balance >= 0 ? 16 : 220, balance >= 0 ? 185 : 53, balance >= 0 ? 129 : 69);
-  pdf.text(`Saldo Auxílio e Prebenda: R$ ${balance.toFixed(2)}`, 10, currentY);
+  pdf.text(`Saldo Auxílio e Prebenda: ${formatCurrency(balance)}`, 10, currentY); // <-- CORREÇÃO
   
   pdf.save(`${title.replace(/\s+/g, '_')}.pdf`);
 };
@@ -359,7 +360,7 @@ export const generateFieldReportPDF = async (
         format(new Date(transaction.date), 'dd/MM/yyyy', { locale: ptBR }),
         transaction.type === 'entry' ? 'Entrada' : 'Saída',
         transaction.category,
-        `R$ ${transaction.amount.toFixed(2)}`,
+        formatCurrency(transaction.amount), // <-- CORREÇÃO
         transaction.paymentMethod.toUpperCase(),
         transaction.documentNumber || '-',
         transaction.month || '-',
@@ -416,7 +417,7 @@ export const generateFieldReportPDF = async (
         format(new Date(prebenda.date), 'dd/MM/yyyy', { locale: ptBR }),
         prebenda.type === 'entry' ? 'Entrada' : 'Saída',
         prebenda.pastor,
-        `R$ ${prebenda.amount.toFixed(2)}`,
+        formatCurrency(prebenda.amount), // <-- CORREÇÃO
         prebenda.month
       ];
       
@@ -470,7 +471,7 @@ export const generateFieldReportPDF = async (
         format(new Date(registration.date), 'dd/MM/yyyy', { locale: ptBR }),
         registration.month,
         registration.category,
-        `R$ ${registration.amount.toFixed(2)}`
+        formatCurrency(registration.amount) // <-- CORREÇÃO
       ];
       
       rowData.forEach((data, colIndex) => {
@@ -527,9 +528,9 @@ export const generateFinancialGoalsPDF = async (
   currentY += 8;
   pdf.text(`Abaixo da Meta: ${summary.belowMonthly + summary.belowAnnual}`, 10, currentY);
   currentY += 8;
-  pdf.text(`Meta Total: R$ ${summary.totalGoalAmount.toFixed(2)}`, 10, currentY);
+  pdf.text(`Meta Total: ${formatCurrency(summary.totalGoalAmount)}`, 10, currentY); // <-- CORREÇÃO
   currentY += 8;
-  pdf.text(`Realizado Total: R$ ${summary.totalActualAmount.toFixed(2)}`, 10, currentY);
+  pdf.text(`Realizado Total: ${formatCurrency(summary.totalActualAmount)}`, 10, currentY); // <-- CORREÇÃO
   currentY += 20;
   
   // Progress Table
@@ -563,8 +564,8 @@ export const generateFinancialGoalsPDF = async (
       const rowData = [
         item.field,
         item.month,
-        `R$ ${item.goalAmount.toFixed(2)}`,
-        `R$ ${item.actualAmount.toFixed(2)}`,
+        formatCurrency(item.goalAmount),   // <-- CORREÇÃO
+        formatCurrency(item.actualAmount), // <-- CORREÇÃO
         `${item.percentage.toFixed(1)}%`,
         item.status === 'exceeded' ? 'Superou' :
         item.status === 'on-track' ? 'No Caminho' : 'Abaixo'
@@ -608,7 +609,7 @@ export const generateFinancialGoalsPDF = async (
       currentY += 6;
       
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`Meta Anual: R$ ${goal.annualGoal.toFixed(2)}`, 15, currentY);
+      pdf.text(`Meta Anual: ${formatCurrency(goal.annualGoal)}`, 15, currentY); // <-- CORREÇÃO
       currentY += 5;
       pdf.text(`Meses configurados: ${Object.keys(goal.monthlyGoals).length}`, 15, currentY);
       currentY += 5;

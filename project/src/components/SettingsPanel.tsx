@@ -320,7 +320,7 @@ export function SettingsPanel() {
               <div className="p-4 bg-gray-50 rounded-lg">
                 <h4 className="font-medium text-gray-900">Versão</h4>
                 <p className="text-gray-600">CEDADER v1.0.0</p>
-                <p className="text-sm text-gray-500">Sistema de Tesouraria</p>
+                <p className="text-sm text-gray-500">Convenção Estadual das Assembléia de Deus</p>
               </div>
             </div>
           </div>

@@ -1,11 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { usePastorRegistrations } from '../hooks/usePastorRegistrations';
 import { useRegistrations } from '../hooks/useRegistrations';
 import { useObreiros } from '../hooks/useObreiros';
 import { useAuth } from '../contexts/AuthContext';
 import { ObreiroRegistrationForm } from './ObreiroRegistrationForm';
 import { ObreirosList } from './ObreirosList';
-import { FIELDS } from '../types';
 import { format, getYear } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { User, Heart, MapPin, Calendar, Phone, FileText, Users, Baby, Edit2, Trash2, Search, Filter, X, Download, BarChart3, TrendingUp, Award, Printer } from 'lucide-react';
@@ -13,9 +12,9 @@ import { formatCurrency } from '../utils/formatters';
 
 export function PastorRegistrationsList() {
   const { pastorRegistrations, deletePastorRegistration, getTotalPastors, getTotalChildren } = usePastorRegistrations();
-  const { registrations, getTotalRegistrations, getRegistrationsByField, getRegistrationsByMonth, deleteRegistration } = useRegistrations();
+  const { registrations, getTotalRegistrations, getRegistrationsByField } = useRegistrations();
   const { getTotalObreiros } = useObreiros();
-  const { isAdmin, canEdit, canDelete } = useAuth();
+  const { isAdmin, canDelete } = useAuth();
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -117,7 +116,6 @@ export function PastorRegistrationsList() {
   };
 
   const registrationsByField = getRegistrationsByField();
-  const registrationsByMonth = getRegistrationsByMonth();
 
   return (
     <div className="space-y-6">

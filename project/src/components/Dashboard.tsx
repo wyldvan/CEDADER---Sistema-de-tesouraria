@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useTransactions } from '../hooks/useTransactions';
 import { useRegistrations } from '../hooks/useRegistrations';
 import { usePayments } from '../hooks/usePayments';
@@ -9,6 +9,7 @@ import { TrendingUp, TrendingDown, DollarSign, Users, BarChart3, PieChart, Arrow
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
 import { formatCurrency } from '../utils/formatters';
+import { Transaction, Prebenda } from '../types';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -38,7 +39,7 @@ export function Dashboard({ onViewChange }: DashboardProps) {
 
   // Filter data based on selected year and month
   const filteredData = useMemo(() => {
-    const filterByDate = (items: any[]) => {
+    const filterByDate = <T extends { date: string }>(items: T[]): T[] => {
       return items.filter(item => {
         const itemDate = new Date(item.date);
 
@@ -100,15 +101,19 @@ export function Dashboard({ onViewChange }: DashboardProps) {
   const filteredEntryTransactions = filteredData.transactions.filter(t => t.type === 'entry');
   const filteredEntryPrebendas = filteredData.prebendas.filter(p => p.type === 'entry');
 
-  const combinedEntryPaymentMethods = { pix: 0, cash: 0, transfer: 0 };
+  const combinedEntryPaymentMethods: Record<Transaction['paymentMethod'], number> = {
+    pix: 0,
+    cash: 0,
+    transfer: 0,
+  };
 
-  // Add transaction entries
-  filteredEntryTransactions.forEach(t => {
+  // Agora, o TypeScript sabe que 't.paymentMethod' só pode ser 'pix', 'cash', ou 'transfer'
+  filteredEntryTransactions.forEach((t) => {
     combinedEntryPaymentMethods[t.paymentMethod] += t.amount;
   });
 
-  // Add prebenda entries
-  filteredEntryPrebendas.forEach(p => {
+  // O mesmo se aplica aqui
+  filteredEntryPrebendas.forEach((p) => {
     combinedEntryPaymentMethods[p.paymentMethod] += p.amount;
   });
 

@@ -34,7 +34,7 @@ export const parseCurrency = (formattedValue: string): number => {
     }
     // Remove o "R$", os pontos de milhar e substitui a vírgula decimal por ponto
     const numericString = formattedValue
-        .replace('R$', '')
+        .replace('', '')
         .trim()
         .replace(/\./g, '')
         .replace(',', '.');
@@ -62,4 +62,13 @@ export const parseFormattedCurrency = (value: string): number => {
   const digitsOnly = value.replace(/\D/g, '');
   if (digitsOnly === '') return 0;
   return parseFloat(digitsOnly) / 100;
+};
+
+export const parseToNumber = (value: string): number => {
+  if (!value) return 0;
+  // Remove tudo que não for um dígito
+  const digitsOnly = value.replace(/\D/g, '');
+  if (digitsOnly === '') return 0;
+  // Converte para o valor decimal correto
+  return parseInt(digitsOnly, 10) / 100;
 };

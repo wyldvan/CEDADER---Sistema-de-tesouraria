@@ -15,6 +15,7 @@ export interface Transaction {
 
 export interface Registration {
   id: string;
+  sector: string; // <-- ADICIONE ESTA LINHA
   field: string;
   month: string;
   category: string;

@@ -11,7 +11,7 @@ export const generateTransactionsPDF = async (transactions: Transaction[], title
   // Header
   pdf.setFontSize(18);
   pdf.setTextColor(16, 185, 129); // Spring green
-  pdf.text('CEDADER - Sistema de Tesouraria', pageWidth / 2, 20, { align: 'center' });
+  pdf.text('CEDADER - Convenção Estadual das Assembleia de Deus', pageWidth / 2, 20, { align: 'center' });
   
   pdf.setFontSize(14);
   pdf.setTextColor(0, 0, 0);
@@ -162,7 +162,7 @@ export const generateRegistrationsPDF = async (registrations: Registration[], ti
   // Header
   pdf.setFontSize(18);
   pdf.setTextColor(16, 185, 129);
-  pdf.text('CEDADER - Sistema de Tesouraria', pageWidth / 2, 20, { align: 'center' });
+  pdf.text('CEDADER - Convenção Estadual das Assembleia de Deus', pageWidth / 2, 20, { align: 'center' });
   
   pdf.setFontSize(14);
   pdf.setTextColor(0, 0, 0);
@@ -228,7 +228,7 @@ export const generatePrebendaPDF = async (prebendas: any[], title: string) => {
   // Header
   pdf.setFontSize(18);
   pdf.setTextColor(16, 185, 129);
-  pdf.text('CEDADER - Sistema de Tesouraria', pageWidth / 2, 20, { align: 'center' });
+  pdf.text('CEDADER - Convenção Estadual das Assembleia de Deus', pageWidth / 2, 20, { align: 'center' });
   
   pdf.setFontSize(14);
   pdf.setTextColor(0, 0, 0);
@@ -312,7 +312,7 @@ export const generateFieldReportPDF = async (
   // Header
   pdf.setFontSize(18);
   pdf.setTextColor(16, 185, 129);
-  pdf.text('CEDADER - Sistema de Tesouraria', pageWidth / 2, 20, { align: 'center' });
+  pdf.text('CEDADER - Convenção Estadual das Assembleia de Deus', pageWidth / 2, 20, { align: 'center' });
   
   pdf.setFontSize(14);
   pdf.setTextColor(0, 0, 0);
@@ -500,7 +500,7 @@ export const generateFinancialGoalsPDF = async (
   // Header
   pdf.setFontSize(18);
   pdf.setTextColor(16, 185, 129);
-  pdf.text('CEDADER - Sistema de Tesouraria', pageWidth / 2, 20, { align: 'center' });
+  pdf.text('CEDADER - Convenção Estadual das Assembleia de Deus', pageWidth / 2, 20, { align: 'center' });
   
   pdf.setFontSize(14);
   pdf.setTextColor(0, 0, 0);
@@ -633,7 +633,7 @@ export const generateObreirosPDF = async (obreiros: any[], title: string) => {
   // Header
   pdf.setFontSize(18);
   pdf.setTextColor(16, 185, 129);
-  pdf.text('CEDADER - Sistema de Tesouraria', pageWidth / 2, 20, { align: 'center' });
+  pdf.text('CEDADER - Convenção Estadual das Assembleia de Deus', pageWidth / 2, 20, { align: 'center' });
   
   pdf.setFontSize(14);
   pdf.setTextColor(0, 0, 0);
@@ -761,7 +761,7 @@ export const generateChartPDF = async (elementId: string, title: string) => {
   // Header
   pdf.setFontSize(18);
   pdf.setTextColor(16, 185, 129);
-  pdf.text('CEDADER - Sistema de Tesouraria', pageWidth / 2, 20, { align: 'center' });
+  pdf.text('CEDADER - Convenção Estadual das Assembleia de Deus', pageWidth / 2, 20, { align: 'center' });
   
   pdf.setFontSize(14);
   pdf.setTextColor(0, 0, 0);

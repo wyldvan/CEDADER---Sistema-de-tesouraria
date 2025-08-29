@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+// Lê a variável de ambiente VITE_API_URL. Se não existir, usa localhost como padrão.
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 class ApiService {
   private token: string | null = null;
